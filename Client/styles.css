@@ -1,0 +1,51 @@
+:root {
+    --background-color: #27273d;
+    --content-color: #525286;
+    --content-shadow: #463e5c;
+}
+
+body {
+    font-size: 10px;
+    font-family: Roboto, sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.menu-options {
+    display: flex;
+    flex-direction: row;
+}
+.menu-option {
+    margin: 1rem;
+    padding: 1rem;
+    background-color: var(--content-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow:
+        0.3rem 0.3rem var(--content-shadow);
+    text-decoration: none;
+}
+.menu-option:hover {
+    box-shadow:
+        0.5rem 0.5rem var(--content-shadow);
+    transform: translate(-0.2rem, -0.2rem);
+}
+.menu-option:active {
+    box-shadow:
+        0.1rem 0.1rem var(--content-shadow);
+    transform: translate(0.2rem, 0.2rem);
+}
+.menu-picture {
+    border-radius: 0.5rem;
+    width: auto;
+    height: 25rem;
+}
+.menu-text {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+}
