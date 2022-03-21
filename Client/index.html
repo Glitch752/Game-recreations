@@ -9,10 +9,11 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="playing-text">You're playing as <span id="playingAs"></span>.</div>
+        <div class="playing-text" id="playingText">You're playing as <span id="playingAs"></span>.</div>
         <div class="game">
-            <div class="game-text">Your turn</div>
+            <div class="game-text" id="gameText"></div>
             <div class="game-board" id="gameBoard"></div>
+            <button class="replay-button" id="replayButton" onclick="replay()">Replay</button>
         </div>
     </div>
 </body>

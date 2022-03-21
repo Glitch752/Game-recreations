@@ -31,12 +31,16 @@ body {
     background-color: var(--game-color);
     border-radius: 10px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    /* gets the size of the grid based on grid gap and squares */
+    width: calc((var(--square-size) + 1rem) * 3 - 1rem);
 }
 .game-text {
     font-size: var(--font-size);
     font-weight: bold;
     color: #fff;
     margin-bottom: 1rem;
+    width: 100%;
+    text-align: center;
 }
 .game-board {
     display: grid;
@@ -73,4 +77,30 @@ body {
 }
 .playing-text span {
     font-size: 3rem;
+}
+.replay-button {
+    width: 100%;
+    outline: none;
+    border: none;
+    height: 3rem;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    display: none;
+    background-color: #43a743;
+    color: #fff;
+    font-size: 2rem;
+    box-shadow: 
+        #197719 0.2rem 0.2rem;
+}
+.replay-button:hover {
+    background-color: #41b647;
+    box-shadow:
+        #1c851c 0.3rem 0.3rem;
+    transform: translate(-0.1rem, -0.1rem);
+}
+.replay-button:active {
+    background-color: #388b38;
+    box-shadow:
+        #187218 0.1rem 0.1rem;
+    transform: translate(0.1rem, 0.1rem);
 }
