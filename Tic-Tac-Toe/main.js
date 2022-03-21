@@ -1,7 +1,11 @@
-var webSocket = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/ws/");
-// var webSocket = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host.split(":")[0] + ":7116");
+// var webSocket = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/ws/");
+var webSocket = new WebSocket((window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host.split(":")[0] + ":7116");
 
 webSocket.onopen = function (event) {
+    webSocket.send(JSON.stringify({
+        type: "selectGame",
+        game: "tic-tac-toe"
+    }));
     console.log("Connected to server");
 };
 
@@ -64,7 +68,8 @@ function replay() {
     updateGameText();
     updatePlayingAs();
     webSocket.send(JSON.stringify({
-        type: "replay"
+        type: "replay",
+        game: "tic-tac-toe"
     }));
 }
 
@@ -162,7 +167,8 @@ function selectSquare(index) {
         updateGameboard();
         webSocket.send(JSON.stringify({
             type: "move",
-            index: index
+            index: index,
+            game: "tic-tac-toe"
         }));
     }
 }
