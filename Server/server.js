@@ -4,12 +4,12 @@ var wss = new websocketserver({ port: 7116 });
 
 var clients = []; //Stores what game clients are connected to.
 var TTTclients = [];
+var BattleshipClients = [];
 
 wss.on('connection', function (ws) {
     console.log('Client connected');
     ws.on('message', function (message) {
         var parsedData = JSON.parse(message);
-        console.log(parsedData);
         if(parsedData.type === "selectGame") {
             if(parsedData.game === "tic-tac-toe") {
                 var paired = false;
@@ -25,6 +25,20 @@ wss.on('connection', function (ws) {
                     TTTclients.push({ws: ws, inGame: false, playingWith: null});
                 }
                 clients.push({ws: ws, game: "tic-tac-toe"});
+            } else if(parsedData.game === "battleship") {
+                var paired = false;
+                BattleshipClients.forEach(function (client) {
+                    if(client.playingWith === null) {
+                        client.playingWith = { ws: ws, inGame: true, playingWith: null };
+                        client.ws.send(JSON.stringify({ type: "pair"}));
+                        ws.send(JSON.stringify({ type: "pair"}));
+                        paired = true;
+                    }
+                });
+                if(!paired) {
+                    BattleshipClients.push({ws: ws, inGame: false, playingWith: null});
+                }
+                clients.push({ws: ws, game: "battleship"});
             }
         } else if(parsedData.game === "tic-tac-toe") {
             if(parsedData.type === "move") {
@@ -94,6 +108,48 @@ wss.on('connection', function (ws) {
                     }
                 });
             }
+        } else if(parsedData.game === "battleship") {
+            if(parsedData.type === "placedShips") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "placedShips"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "placedShips"
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "startTurns") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "startTurns"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "startTurns"
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "checkSpace") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "checkSpace",
+                            x: parsedData.x,
+                            y: parsedData.y
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "checkSpace",
+                            x: parsedData.x,
+                            y: parsedData.y
+                        }));
+                    }
+                });
+            }
         }
     });
     ws.on('close', function () {
@@ -122,6 +178,17 @@ wss.on('connection', function (ws) {
                         TTTclients.push(client.playingWith);
                     }
                     TTTclients.splice(index, 1);
+                }
+            });
+        } else if(game === "battleship") {
+            BattleshipClients.forEach(function (client, index) {
+                if(client.ws === ws) {
+                    if(client.playingWith !== null) {
+                        client.playingWith.ws.send(JSON.stringify({type: "left"}));
+                        client.playingWith.inGame = false;
+                        BattleshipClients.push(client.playingWith);
+                    }
+                    BattleshipClients.splice(index, 1);
                 }
             });
         }
