@@ -37,7 +37,21 @@ webSocket.onmessage = function (event) {
 		// Check if any of the ships intercept the space
 		var shipIntercepted = false;
 		for(var i = 0; i < ships.length; i++) {
-			if(ships[i].x1 <= parsedData.x && ships[i].x2 >= parsedData.x && ships[i].y1 <= parsedData.y && ships[i].y2 >= parsedData.y) {
+			var x1 = ships[i].x1;
+			var y1 = ships[i].y1;
+			var x2 = ships[i].x2;
+			var y2 = ships[i].y2;
+			if(x2 - x1 < 0) {
+				var temp = x1;
+				x1 = x2;
+				x2 = temp;
+			}
+			if(y2 - y1 < 0) {
+				var temp = y1;
+				y1 = y2;
+				y2 = temp;
+			}
+			if(x1 <= parsedData.x && x2 >= parsedData.x && y1 <= parsedData.y && y2 >= parsedData.y) {
 				shipIntercepted = true;
 				break;
 			}
@@ -76,6 +90,11 @@ webSocket.onmessage = function (event) {
 		gameState = "sunkShip";
 		sunkShip = parsedData.ship;
 		updateGameState();
+	} else if(parsedData.type == "gameOver") {
+		gameState = "youWin";
+		updateGameState();
+	} else if(parsedData.type == "restart") {
+		restartGame();
 	}
 }
 
@@ -116,7 +135,37 @@ function updateGameState() {
 		gameTextElem.innerHTML = `One of your ships has been sunk!<br>You have ${ships.length - 1} ships remaining.`;
 	} else if(gameState === "sunkShip") {
 		gameTextElem.innerHTML = `You sunk your opponent's ${sunkShip} ship!`;
+	} else if(gameState === "gameOver") {
+		gameTextElem.innerHTML = "Game over! All your ships sunk and you lost!";
+		var restartContainer = document.getElementById("restartContainer");
+		restartContainer.style.display = "flex";
+	} else if(gameState === "youWin") {
+		gameTextElem.innerHTML = "Game over! You sunk all your opponent's ships and won!";
+		var restartContainer = document.getElementById("restartContainer");
+		restartContainer.style.display = "flex";
 	}
+}
+
+function restart() {
+	restartGame();
+	webSocket.send(JSON.stringify({
+		type: "restart",
+		game: "battleship"
+	}));
+}
+
+function restartGame() {
+	var restartContainer = document.getElementById("restartContainer");
+	restartContainer.style.display = "none";
+
+	ships = [];
+	shipsSunk = [];
+	yourGameBoard = [];
+	opponentGameBoard = [];
+	initGameBoards();
+	gameState = "placingShips";
+	updateGameState();
+	updateGameboard();
 }
 
 var gameBoardWidth = 10;
@@ -132,56 +181,85 @@ var ships = [];
 var shipsSunk = [];
 var shipSunk = 0;
 
-for(var i = 0; i < gameBoardHeight; i++){
-	yourGameBoard[i] = [];
-	for(var j = 0; j < gameBoardWidth; j++){
-		yourGameBoard[i][j] = "";
+function initGameBoards() {
+	for(var i = 0; i < gameBoardHeight; i++){
+		yourGameBoard[i] = [];
+		for(var j = 0; j < gameBoardWidth; j++){
+			yourGameBoard[i][j] = "";
+		}
+	}
+	for(var i = 0; i < gameBoardHeight; i++){
+		opponentGameBoard[i] = [];
+		for(var j = 0; j < gameBoardWidth; j++){
+			opponentGameBoard[i][j] = "";
+		}
 	}
 }
-for(var i = 0; i < gameBoardHeight; i++){
-	opponentGameBoard[i] = [];
-	for(var j = 0; j < gameBoardWidth; j++){
-		opponentGameBoard[i][j] = "";
-	}
-}
+initGameBoards();
 
 function updateGameboard() {
 	var yourGameBoardElem = document.getElementById("yourGameBoard");
 
-	var oldShipsSunk = shipsSunk.slice();
+	if(gameState !== "placingShips") {
+		var oldShipsSunk = shipsSunk.slice();
 
-	// Check if any new battleships are sunk
-	for(var i = 0; i < ships.length; i++) {
-		// loop through the ship's coordinates
-		var shipSunk = true;
-		for(var j = ships[i].x1; j <= ships[i].x2; j++) {
-			for(var k = ships[i].y1; k <= ships[i].y2; k++) {
-				if(yourGameBoard[j - 1][k - 1] !== "X") {
-					shipSunk = false;
-					break;
+		// Check if any new battleships are sunk
+		for(var i = 0; i < ships.length; i++) {
+			// loop through the ship's coordinates
+			var shipSunk = true;
+			var x1 = ships[i].x1;
+			var y1 = ships[i].y1;
+			var x2 = ships[i].x2;
+			var y2 = ships[i].y2;
+
+			if(x2 - x1 < 0) {
+				var temp = x1;
+				x1 = x2;
+				x2 = temp;
+			}
+			if(y2 - y1 < 0) {
+				var temp = y1;
+				y1 = y2;
+				y2 = temp;
+			}
+
+			for(var j = x1; j <= x2; j++) {
+				for(var k = y1; k <= y2; k++) {
+					if(yourGameBoard[j - 1][k - 1] !== "X") {
+						shipSunk = false;
+						break;
+					}
 				}
 			}
+			if(shipSunk && shipsSunk.indexOf(i) === -1) {
+				shipsSunk.push(i);
+			}
 		}
-		if(shipSunk && shipsSunk.indexOf(i) === -1) {
-			shipsSunk.push(i);
-		}
-	}
 
-	if(shipsSunk.length > oldShipsSunk.length) {
-		// A new ship has been sunk
-		gameState = "shipSunk";
-		updateGameState();
-		webSocket.send(JSON.stringify({
-			type: "shipSunk",
-			game: "battleship",
-			ship: ships[shipsSunk[shipsSunk.length - 1]].length
-		}));
-		setTimeout(function() {
-			gameState = "yourTurn";
+		if(shipsSunk.length > oldShipsSunk.length) {
+			// A new ship has been sunk
+			gameState = "shipSunk";
 			updateGameState();
-		}, 2000);
+			if(shipsSunk.length === ships.length) {
+				gameState = "gameOver";
+				updateGameState();
+				webSocket.send(JSON.stringify({
+					type: "gameOver",
+					game: "battleship"
+				}));
+				return;
+			}
+			webSocket.send(JSON.stringify({
+				type: "shipSunk",
+				game: "battleship",
+				ship: ships[shipsSunk[shipsSunk.length - 1]].length
+			}));
+			setTimeout(function() {
+				gameState = "yourTurn";
+				updateGameState();
+			}, 2000);
+		}
 	}
-
 
 	yourGameBoardElem.innerHTML = "";
 	var addHTML = "";

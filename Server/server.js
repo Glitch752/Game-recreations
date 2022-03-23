@@ -181,6 +181,30 @@ wss.on('connection', function (ws) {
                         }));
                     }
                 });
+            } else if(parsedData.type === "gameOver") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "gameOver"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "gameOver"
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "restart") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "restart"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "restart"
+                        }));
+                    }
+                });
             }
         }
     });

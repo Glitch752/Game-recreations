@@ -130,3 +130,15 @@ body {
 .battleship.invalid {
     background-color: var(--ship-color-invalid);
 }
+.restart-container {
+    display: none;
+}
+.restart-button {
+    font-size: var(--font-size);
+    outline: none;
+    border: none;
+    background: rgb(72, 146, 72);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    color: #fff;
+}
