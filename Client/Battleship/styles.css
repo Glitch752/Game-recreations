@@ -99,6 +99,20 @@ body {
     justify-content: center;
     align-items: center;
 }
+.game-space-hit {
+    font-weight: bold;
+    font-size: 3rem;
+    color: #c25c5c;
+	-webkit-text-stroke: 2px black;
+    z-index: 10;
+}
+.game-space-miss {
+    font-weight: bold;
+    font-size: 3rem;
+    color: #525286;
+	-webkit-text-stroke: 2px black;
+    z-index: 10;
+}
 .battleships {
     position: absolute;
     pointer-events: none;

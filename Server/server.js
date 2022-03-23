@@ -149,6 +149,38 @@ wss.on('connection', function (ws) {
                         }));
                     }
                 });
+            } else if(parsedData.type === "spaceUpdate") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "spaceUpdate",
+                            event: parsedData.event,
+                            x: parsedData.x,
+                            y: parsedData.y
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "spaceUpdate",
+                            event: parsedData.event,
+                            x: parsedData.x,
+                            y: parsedData.y
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "shipSunk") {
+                BattleshipClients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "shipSunk",
+                            ship: parsedData.ship
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "shipSunk",
+                            ship: parsedData.ship
+                        }));
+                    }
+                });
             }
         }
     });

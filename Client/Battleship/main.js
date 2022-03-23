@@ -26,11 +26,55 @@ webSocket.onmessage = function (event) {
 			gameState = "yourTurn";
 			updateGameState();
 			webSocket.send(JSON.stringify({
-				type: "startTurns"
+				type: "startTurns",
+				game: "battleship"
 			}));
 		}
 	} else if(parsedData.type == "startTurns") {
 		gameState = "opponentTurn";
+		updateGameState();
+	} else if(parsedData.type == "checkSpace") {
+		// Check if any of the ships intercept the space
+		var shipIntercepted = false;
+		for(var i = 0; i < ships.length; i++) {
+			if(ships[i].x1 <= parsedData.x && ships[i].x2 >= parsedData.x && ships[i].y1 <= parsedData.y && ships[i].y2 >= parsedData.y) {
+				shipIntercepted = true;
+				break;
+			}
+		}
+
+		yourGameBoard[parsedData.x - 1][parsedData.y - 1] = "X";
+		gameState = "yourTurn";
+
+		if(shipIntercepted) {
+			webSocket.send(JSON.stringify({
+				type: "spaceUpdate",
+				event: "hit",
+				game: "battleship",
+				x: parsedData.x,
+				y: parsedData.y
+			}));
+		} else {
+			webSocket.send(JSON.stringify({
+				type: "spaceUpdate",
+				event: "miss",
+				game: "battleship",
+				x: parsedData.x,
+				y: parsedData.y
+			}));
+		}
+		updateGameState();
+		updateGameboard();
+	} else if(parsedData.type == "spaceUpdate") {
+		if(parsedData.event == "hit") {
+			opponentGameBoard[parsedData.x - 1][parsedData.y - 1] = "X";
+		} else if(parsedData.event == "miss") {
+			opponentGameBoard[parsedData.x - 1][parsedData.y - 1] = "O";
+		}
+		updateGameboard();
+	} else if(parsedData.type == "shipSunk") {
+		gameState = "sunkShip";
+		sunkShip = parsedData.ship;
 		updateGameState();
 	}
 }
@@ -66,8 +110,12 @@ function updateGameState() {
 		gameTextElem.innerHTML = "Waiting for opponent to place ships...";
 	} else if(gameState === "yourTurn") {
 		gameTextElem.innerHTML = "It's your turn! Click on a square to see if it's a hit or miss.";
-	} else if(gameStae === "opponentTurn") {
+	} else if(gameState === "opponentTurn") {
 		gameTextElem.innerHTML = "Waiting for your turn...";
+	} else if(gameState === "shipSunk") {
+		gameTextElem.innerHTML = `One of your ships has been sunk!<br>You have ${ships.length - 1} ships remaining.`;
+	} else if(gameState === "sunkShip") {
+		gameTextElem.innerHTML = `You sunk your opponent's ${sunkShip} ship!`;
 	}
 }
 
@@ -81,6 +129,8 @@ var yourGameBoard = [];
 var opponentGameBoard = [];
 
 var ships = [];
+var shipsSunk = [];
+var shipSunk = 0;
 
 for(var i = 0; i < gameBoardHeight; i++){
 	yourGameBoard[i] = [];
@@ -97,6 +147,41 @@ for(var i = 0; i < gameBoardHeight; i++){
 
 function updateGameboard() {
 	var yourGameBoardElem = document.getElementById("yourGameBoard");
+
+	var oldShipsSunk = shipsSunk.slice();
+
+	// Check if any new battleships are sunk
+	for(var i = 0; i < ships.length; i++) {
+		// loop through the ship's coordinates
+		var shipSunk = true;
+		for(var j = ships[i].x1; j <= ships[i].x2; j++) {
+			for(var k = ships[i].y1; k <= ships[i].y2; k++) {
+				if(yourGameBoard[j - 1][k - 1] !== "X") {
+					shipSunk = false;
+					break;
+				}
+			}
+		}
+		if(shipSunk && shipsSunk.indexOf(i) === -1) {
+			shipsSunk.push(i);
+		}
+	}
+
+	if(shipsSunk.length > oldShipsSunk.length) {
+		// A new ship has been sunk
+		gameState = "shipSunk";
+		updateGameState();
+		webSocket.send(JSON.stringify({
+			type: "shipSunk",
+			game: "battleship",
+			ship: ships[shipsSunk[shipsSunk.length - 1]].length
+		}));
+		setTimeout(function() {
+			gameState = "yourTurn";
+			updateGameState();
+		}, 2000);
+	}
+
 
 	yourGameBoardElem.innerHTML = "";
 	var addHTML = "";
@@ -116,7 +201,7 @@ function updateGameboard() {
 				continue
 			}
 			addHTML += `
-				<div class="game-space" onclick="clickSpace(${i}, ${j})" onmousedown="mouseDownSpace(${i}, ${j})" onmouseup="mouseUpSpace(${i}, ${j})" onmouseover="hoverSpace(${i}, ${j})" id="yourSquarex${i}y${j}"></div>
+				<div class="game-space" onmousedown="mouseDownSpace(${i}, ${j})" onmouseup="mouseUpSpace(${i}, ${j})" onmouseover="hoverSpace(${i}, ${j})" id="yourSquarex${i}y${j}">${yourGameBoard[i - 1][j - 1] === "X" ? "<span class='game-space-hit'>X</span>" : ""}</div>
 			`; 
 		}
 		addHTML += "</div>";
@@ -182,7 +267,7 @@ function updateGameboard() {
 				continue
 			}
 			addHTML += `
-				<div class="game-space"></div>
+				<div onmousedown="mouseDownSpace(${i}, ${j})" class="game-space">${opponentGameBoard[i - 1][j - 1] === "X" ? "<span class='game-space-hit'>X</span>" : ""}${opponentGameBoard[i - 1][j - 1] === "O" ? "<span class='game-space-miss'>O</span>" : ""}</div>
 			`; 
 		}
 		addHTML += "</div>";
@@ -193,17 +278,8 @@ function updateGameboard() {
 var draggingShip = false;
 var dragStartX = 0, dragStartY = 0, dragX = 0, dragY = 0, dragInvalid = false;
 
-function clickSpace(x, y) {
-	if(gameState === "yourTurn") {
-		webSocket.send(JSON.stringify({
-			type: "checkSpace",
-			x: x,
-			y: y
-		}));
-	}
-}
 function mouseDownSpace(x, y) {
-	if(gameState === "yourTurn") {
+	if(gameState === "placingShips") {
 		draggingShip = true;
 		dragInvalid = false;
 		dragStartX = x;
@@ -211,10 +287,20 @@ function mouseDownSpace(x, y) {
 		dragX = x;
 		dragY = y;
 		updateGameboard();
+	} else if(gameState === "yourTurn") {
+		webSocket.send(JSON.stringify({
+			type: "checkSpace",
+			game: "battleship",
+			x: x,
+			y: y
+		}));
+		gameState = "opponentTurn";
+	    updateGameState();
+		updateGameboard();
 	}
 }
 function hoverSpace(x, y) {
-	if(gameState === "yourTurn") {
+	if(gameState === "placingShips") {
 		if(draggingShip) {
 			dragX = x;
 			dragY = y;
@@ -236,7 +322,7 @@ function hoverSpace(x, y) {
 	}
 }
 function mouseUpSpace(x, y) {
-	if(gameState === "yourTurn") {
+	if(gameState === "placingShips") {
 		draggingShip = false;
 		if(dragInvalid) {
 			updateGameboard();
