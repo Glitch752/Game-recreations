@@ -16,6 +16,9 @@ body {
 .menu-options {
     display: flex;
     flex-direction: row;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 1rem 2rem;
 }
 .menu-option {
     margin: 1rem;
@@ -48,4 +51,21 @@ body {
     font-weight: bold;
     color: #fff;
     text-align: center;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #212031; 
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 100vh;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555; 
 }
