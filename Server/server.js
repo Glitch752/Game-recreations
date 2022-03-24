@@ -5,6 +5,7 @@ var wss = new websocketserver({ port: 7116 });
 var clients = []; //Stores what game clients are connected to.
 var TTTclients = [];
 var BattleshipClients = [];
+var Connect4Clients = [];
 
 wss.on('connection', function (ws) {
     console.log('Client connected');
@@ -39,6 +40,20 @@ wss.on('connection', function (ws) {
                     BattleshipClients.push({ws: ws, inGame: false, playingWith: null});
                 }
                 clients.push({ws: ws, game: "battleship"});
+            } else if(parsedData.game === "connect4") {
+                var paired = false;
+                Connect4Clients.forEach(function (client) {
+                    if(client.playingWith === null) {
+                        client.playingWith = { ws: ws, inGame: true, playingWith: null };
+                        client.ws.send(JSON.stringify({ type: "pair", yourTurn: true }));
+                        ws.send(JSON.stringify({ type: "pair", yourTurn: false }));
+                        paired = true;
+                    }
+                });
+                if(!paired) {
+                    Connect4Clients.push({ws: ws, inGame: false, playingWith: null});
+                }
+                clients.push({ws: ws, game: "connect4"});
             }
         } else if(parsedData.game === "tic-tac-toe") {
             if(parsedData.type === "move") {
@@ -206,6 +221,48 @@ wss.on('connection', function (ws) {
                     }
                 });
             }
+        } else if(parsedData.game === "connect4") {
+            if(parsedData.type === "move") {
+                Connect4Clients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "move",
+                            row: parsedData.row,
+                            col: parsedData.col
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "move",
+                            row: parsedData.row,
+                            col: parsedData.col
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "win") {
+                Connect4Clients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "win"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "win"
+                        }));
+                    }
+                });
+            } else if(parsedData.type === "replay") {
+                Connect4Clients.forEach(function (client) {
+                    if(client.ws === ws) {
+                        client.playingWith.ws.send(JSON.stringify({
+                            type: "replay"
+                        }));
+                    } else if(client.playingWith.ws === ws) {
+                        client.ws.send(JSON.stringify({
+                            type: "replay"
+                        }));
+                    }
+                });
+            }
         }
     });
     ws.on('close', function () {
@@ -245,6 +302,17 @@ wss.on('connection', function (ws) {
                         BattleshipClients.push(client.playingWith);
                     }
                     BattleshipClients.splice(index, 1);
+                }
+            });
+        } else if(game === "connect4") {
+            Connect4Clients.forEach(function (client, index) {
+                if(client.ws === ws) {
+                    if(client.playingWith !== null) {
+                        client.playingWith.ws.send(JSON.stringify({type: "left"}));
+                        client.playingWith.inGame = false;
+                        Connect4Clients.push(client.playingWith);
+                    }
+                    Connect4Clients.splice(index, 1);
                 }
             });
         }
