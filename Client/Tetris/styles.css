@@ -1,0 +1,110 @@
+:root {
+    --border-thickness: 0.2rem;
+}
+
+body {
+    background-color: #333333;
+    font-family: monospace;
+    border: 0;
+    font-size: 2rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.left-panel {
+    height: 34rem;
+    padding: 0 1rem;
+    position: relative;
+    min-width: 18rem;
+}
+.statistics-container {
+    font-size: 2rem;
+    background-color: #000000;
+    padding: 0.5rem;
+    border: 0.5rem solid #3b5ea9;
+    position: absolute;
+    bottom: 0;
+}
+.pieces {
+    display: grid;
+    grid-template-columns: 6rem 10rem;
+    grid-gap: 0.5rem;
+}
+.piece-display {
+    display: grid;
+    width: calc(1.25rem * var(--columns));
+    height: calc(1.25rem * var(--rows));
+    grid-template-columns: repeat(var(--columns), 1fr);
+    grid-template-rows: repeat(var(--rows), 1fr);
+}
+.piece-score {
+    display: inline-block;
+    color: #711212;
+}
+.piece-square {
+    background-color: var(--color);
+    border-top: var(--border-thickness) solid var(--color-light);
+    border-left: var(--border-thickness) solid var(--color-light);
+    border-bottom: var(--border-thickness) solid var(--color-dark);
+    border-right: var(--border-thickness) solid var(--color-dark);
+}
+
+.center-panel {
+    height: 34rem;
+    margin: 0 2rem;
+    position: relative;
+    width: 18rem;
+}
+.lines-container {
+    font-size: 2rem;
+    background-color: #000000;
+    padding: 0.5rem;
+    border: 0.5rem solid #3b5ea9;
+}
+.game-container {
+    border: 0.5rem solid #3b5ea9;
+    position: absolute;
+    bottom: 0;
+}
+.game {
+    background-color: black;
+    width: calc(var(--width) * 1rem);
+    height: calc(var(--height) * 1rem);
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    grid-template-rows: repeat(var(--rows), 1fr);
+}
+
+.right-panel {
+    height: 34rem;
+    padding: 0 1rem;
+}
+.score-container {
+    font-size: 2rem;
+    background-color: #000000;
+    padding: 0.5rem;
+    border: 0.5rem solid #3b5ea9;
+}
+.next-piece-container {
+    font-size: 2rem;
+    background-color: #000000;
+    padding: 0.5rem;
+    border: 0.5rem solid #3b5ea9;
+    margin-top: 0.5rem;
+}
+.level-container {
+    font-size: 2rem;
+    background-color: #000000;
+    padding: 0.5rem;
+    border: 0.5rem solid #3b5ea9;
+    margin-top: 0.5rem;
+    min-width: 15rem;
+}
+
+.new-line {
+    display: block;
+    padding: 0 0.5rem;
+}

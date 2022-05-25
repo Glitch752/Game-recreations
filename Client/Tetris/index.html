@@ -1,0 +1,41 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="main.js"></script>
+</head>
+<body>
+    <div class="left-panel">
+        <div class="statistics-container">
+            STATISTICS
+            <div class="pieces" id="pieces">
+                
+            </div>
+        </div>
+    </div>
+    <div class="center-panel">
+        <div class="lines-container">
+            <div class="lines">LINES-<span id="lines">000</span></div>
+        </div>
+        <div class="game-container">
+            <div class="game" id="game"></div>
+        </div>
+    </div>
+    <div class="right-panel">
+        <div class="score-container">
+            <div class="high-score">TOP <span class="new-line" id="highScore">000000</span></div>
+            <div class="score">SCORE <span class="new-line" id="score">000000</span></div>
+        </div>
+        <div class="next-piece-container">
+            <span class="next-piece-text">NEXT</span>
+            <div class="next-piece" id="nextPiece"></div>
+        </div>
+        <div class="level-container">
+            <span class="level">LEVEL <span class="new-line" id="level">0</span></span>
+        </div>
+    </div>
+</body>
+</html>
